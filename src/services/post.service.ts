@@ -1,6 +1,6 @@
-import { collection, addDoc, getDocs, query, orderBy, deleteDoc, doc, onSnapshot, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, orderBy, deleteDoc, doc, onSnapshot, updateDoc, arrayUnion, arrayRemove, increment, writeBatch } from 'firebase/firestore';
 import { db } from './firebase.service';
-import type { PostPayload, Post } from '../types/post';
+import type { PostPayload, Post, Comment } from '../types/post';
 import type { UserProfile } from '../types/auth';
 import { POST_COLLECTION } from '../constants/post';
 
@@ -64,6 +64,7 @@ export const createPost = async (payload: PostPayload, user: UserProfile): Promi
     imageUrl: imageUrl,
     createdAt: Date.now(),
     likes: [],
+    commentCount: 0,
   });
 };
 
@@ -107,4 +108,44 @@ export const toggleLikePost = async (postId: string, userId: string, isLiked: bo
 export const deletePost = async (postId: string): Promise<void> => {
   const postRef = doc(db, POST_COLLECTION, postId);
   await deleteDoc(postRef);
+};
+
+export const subscribeToComments = (postId: string, onData: (comments: Comment[]) => void) => {
+  const commentsRef = collection(db, POST_COLLECTION, postId, 'comments');
+  const q = query(commentsRef, orderBy('createdAt', 'asc')); // Cũ nhất xếp trên
+  
+  return onSnapshot(q, (snapshot) => {
+    const comments = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    })) as Comment[];
+    onData(comments);
+  }, (error) => {
+    console.error("Lỗi lấy dữ liệu bình luận từ Firebase:", error);
+    alert("Lỗi tải bình luận: " + error.message);
+  });
+};
+
+export const addCommentToPost = async (postId: string, text: string, user: UserProfile): Promise<void> => {
+  const batch = writeBatch(db);
+
+  // 1. Chuẩn bị thao tác thêm bình luận
+  const commentsRef = collection(db, POST_COLLECTION, postId, 'comments');
+  const newCommentRef = doc(commentsRef); // Tạo ID trước
+  batch.set(newCommentRef, {
+    authorId: user.uid,
+    authorName: user.displayName,
+    authorAvatar: user.photoURL,
+    text: text,
+    createdAt: Date.now(),
+  });
+
+  // 2. Chuẩn bị thao tác cộng số đếm
+  const postRef = doc(db, POST_COLLECTION, postId);
+  batch.update(postRef, {
+    commentCount: increment(1)
+  });
+
+  // 3. Thực thi cả 2 cùng lúc (Nếu 1 cái xịt thì cả 2 cùng bị hủy)
+  await batch.commit();
 };

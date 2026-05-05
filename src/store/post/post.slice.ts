@@ -1,6 +1,6 @@
 import { create } from 'zustand';
-import type { Post, PostPayload } from '../../types/post';
-import { createPost, fetchPosts, subscribeToPosts, toggleLikePost, deletePost as deletePostService } from '../../services/post.service';
+import type { Post, PostPayload, Comment } from '../../types/post';
+import { createPost, fetchPosts, subscribeToPosts, toggleLikePost, deletePost as deletePostService, subscribeToComments, addCommentToPost } from '../../services/post.service';
 import type { UserProfile } from '../../types/auth';
 
 interface PostState {
@@ -15,6 +15,12 @@ interface PostState {
   submitPost: (payload: PostPayload, user: UserProfile) => Promise<boolean>;
   deletePost: (postId: string) => Promise<boolean>;
   toggleLike: (postId: string, userId: string, isLiked: boolean) => Promise<void>;
+
+  commentsByPost: Record<string, Comment[]>;
+  activeCommentListeners: Record<string, () => void>;
+  listenToComments: (postId: string) => void;
+  stopListeningToComments: (postId: string) => void;
+  submitComment: (postId: string, text: string, user: UserProfile) => Promise<boolean>;
 }
 
 export const usePostStore = create<PostState>((set, get) => ({
@@ -23,6 +29,8 @@ export const usePostStore = create<PostState>((set, get) => ({
   isSubmitting: false,
   error: null,
   unsubscribePosts: null,
+  commentsByPost: {},
+  activeCommentListeners: {},
 
   loadPosts: async () => {
     set({ isLoading: true, error: null });
@@ -103,6 +111,43 @@ export const usePostStore = create<PostState>((set, get) => ({
       // Phục hồi lại state cũ nếu Server từ chối
       const posts = await fetchPosts();
       set({ posts });
+    }
+  },
+
+  listenToComments: (postId) => {
+    const { activeCommentListeners } = get();
+    if (activeCommentListeners[postId]) return;
+
+    const unsubscribe = subscribeToComments(postId, (comments) => {
+      set((state) => ({
+        commentsByPost: { ...state.commentsByPost, [postId]: comments }
+      }));
+    });
+
+    set((state) => ({
+      activeCommentListeners: { ...state.activeCommentListeners, [postId]: unsubscribe }
+    }));
+  },
+
+  stopListeningToComments: (postId) => {
+    const { activeCommentListeners } = get();
+    const unsubscribe = activeCommentListeners[postId];
+    if (unsubscribe) {
+      unsubscribe();
+      const newListeners = { ...activeCommentListeners };
+      delete newListeners[postId];
+      set({ activeCommentListeners: newListeners });
+    }
+  },
+
+  submitComment: async (postId, text, user) => {
+    try {
+      await addCommentToPost(postId, text, user);
+      return true;
+    } catch (error: any) {
+      console.error('Lỗi gửi bình luận:', error);
+      alert('Không thể gửi bình luận: ' + error.message);
+      return false;
     }
   }
 }));

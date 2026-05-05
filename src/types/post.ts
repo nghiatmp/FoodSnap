@@ -9,6 +9,7 @@ export interface Post {
   rating: number;
   createdAt: number;
   likes: string[];
+  commentCount?: number;
 }
 
 export interface PostPayload {
@@ -16,4 +17,13 @@ export interface PostPayload {
   description: string;
   imageFile: File | null;
   rating: number;
+}
+
+export interface Comment {
+  id: string;
+  authorId: string;
+  authorName: string | null;
+  authorAvatar: string | null;
+  text: string;
+  createdAt: number;
 }

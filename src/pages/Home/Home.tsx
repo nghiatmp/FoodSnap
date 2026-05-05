@@ -1,18 +1,20 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Header } from '../../components/organisms/Header';
 import { CreatePostForm } from '../../components/organisms/CreatePostForm';
 import { usePostStore } from '../../store/post/post.slice';
 import { useAuthStore } from '../../store/auth/auth.slice';
 import { customColors } from '../../styles/theme';
-import { Star, Trash2, Heart } from 'lucide-react';
+import { Star, Trash2, Heart, MessageSquare } from 'lucide-react';
 import { RATING_OPTIONS } from '../../constants/post';
 import { LoadingSpinner } from '../../components/atoms/LoadingSpinner/LoadingSpinner';
+import { CommentSection } from '../../components/organisms/CommentSection/CommentSection';
 
 const Home: React.FC = () => {
   const { t } = useTranslation();
-  const { posts, isLoading, error, startListeningPosts, stopListeningPosts, deletePost, toggleLike } = usePostStore();
+  const { posts, isLoading, error, startListeningPosts, stopListeningPosts, deletePost, toggleLike, commentsByPost } = usePostStore();
   const { user } = useAuthStore();
+  const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     startListeningPosts();
@@ -150,45 +152,88 @@ const Home: React.FC = () => {
                       ))}
                     </div>
                     
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <span style={{ fontSize: '14px', fontWeight: '600', color: customColors.textSecondary }}>
-                        {post.likes?.length || 0}
-                      </span>
-                      <button
-                        onClick={() => {
-                          if (user) {
-                            const isLiked = post.likes?.includes(user.uid);
-                            toggleLike(post.id, user.uid, !!isLiked);
-                          }
-                        }}
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          padding: '6px',
-                          borderRadius: '50%',
-                          transition: 'all 0.2s',
-                          color: post.likes?.includes(user?.uid || '') ? customColors.primary : customColors.textSecondary
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = '#ffeaec';
-                          e.currentTarget.style.transform = 'scale(1.1)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = 'transparent';
-                          e.currentTarget.style.transform = 'scale(1)';
-                        }}
-                      >
-                        <Heart size={24} fill={post.likes?.includes(user?.uid || '') ? customColors.primary : 'none'} />
-                      </button>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                      {/* Nút Bình luận */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ fontSize: '14px', fontWeight: '600', color: customColors.textSecondary }}>
+                          {post.commentCount || 0}
+                        </span>
+                        <button
+                          onClick={() => {
+                            setExpandedComments(prev => ({
+                              ...prev,
+                              [post.id]: !prev[post.id]
+                            }));
+                          }}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            padding: '6px',
+                            borderRadius: '50%',
+                            transition: 'all 0.2s',
+                            color: expandedComments[post.id] ? customColors.primary : customColors.textSecondary
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = '#f0f0f0';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                          }}
+                        >
+                          <MessageSquare size={22} />
+                        </button>
+                      </div>
+
+                      {/* Nút Thả tim */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ fontSize: '14px', fontWeight: '600', color: customColors.textSecondary }}>
+                          {post.likes?.length || 0}
+                        </span>
+                        <button
+                          onClick={() => {
+                            if (user) {
+                              const isLiked = post.likes?.includes(user.uid);
+                              toggleLike(post.id, user.uid, !!isLiked);
+                            }
+                          }}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            padding: '6px',
+                            borderRadius: '50%',
+                            transition: 'all 0.2s',
+                            color: post.likes?.includes(user?.uid || '') ? customColors.primary : customColors.textSecondary
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = '#ffeaec';
+                            e.currentTarget.style.transform = 'scale(1.1)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                            e.currentTarget.style.transform = 'scale(1)';
+                          }}
+                        >
+                          <Heart size={24} fill={post.likes?.includes(user?.uid || '') ? customColors.primary : 'none'} />
+                        </button>
+                      </div>
                     </div>
                   </div>
 
                   <h3 style={{ margin: '0 0 8px 0', fontSize: '20px', color: customColors.text }}>{post.title}</h3>
                   <p style={{ margin: 0, color: customColors.textSecondary, lineHeight: '1.6', fontSize: '15px' }}>{post.description}</p>
+                  
+                  {/* Khu vực Bình luận */}
+                  {expandedComments[post.id] && (
+                    <CommentSection postId={post.id} />
+                  )}
                 </div>
               </div>
             ))}
