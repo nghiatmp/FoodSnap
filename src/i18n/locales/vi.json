@@ -1,0 +1,33 @@
+{
+  "auth": {
+    "login": {
+      "title": "Chào mừng đến với FoodSnap",
+      "subtitle": "Khám phá và chia sẻ những địa điểm ăn uống yêu thích của bạn",
+      "buttonGoogle": "Đăng nhập với Google",
+      "errorTitle": "Đăng nhập thất bại",
+      "errorDescription": "Có lỗi xảy ra trong quá trình đăng nhập. Vui lòng thử lại."
+    }
+  },
+  "common": {
+    "loading": "Đang tải...",
+    "error": "Lỗi",
+    "success": "Thành công",
+    "logout": "Đăng xuất"
+  },
+  "post": {
+    "create": {
+      "title": "Chia sẻ địa điểm mới",
+      "inputTitle": "Tên món / Tên quán",
+      "inputDescription": "Cảm nhận của bạn...",
+      "rating": "Đánh giá",
+      "uploadImage": "Tải ảnh lên",
+      "submit": "Đăng bài",
+      "successMessage": "Đã đăng bài thành công!"
+    },
+    "feed": {
+      "title": "Bảng tin",
+      "empty": "Chưa có bài viết nào. Hãy là người đầu tiên chia sẻ!",
+      "deleteConfirm": "Bạn có chắc chắn muốn xóa bài viết này không?"
+    }
+  }
+}
