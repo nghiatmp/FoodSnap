@@ -1,0 +1,32 @@
+{
+  "auth": {
+    "login": {
+      "title": "Welcome to FoodSnap",
+      "subtitle": "Discover and share your favorite food places",
+      "buttonGoogle": "Continue with Google",
+      "errorTitle": "Login Failed",
+      "errorDescription": "An error occurred during login. Please try again."
+    }
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "logout": "Logout"
+  },
+  "post": {
+    "create": {
+      "title": "Share a new place",
+      "inputTitle": "Title",
+      "inputDescription": "Description",
+      "rating": "Rating",
+      "uploadImage": "Upload Image",
+      "submit": "Post",
+      "successMessage": "Post created successfully!"
+    },
+    "feed": {
+      "title": "Home Feed",
+      "empty": "No posts yet. Be the first to share!"
+    }
+  }
+}

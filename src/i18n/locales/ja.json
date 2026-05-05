@@ -1,0 +1,32 @@
+{
+  "auth": {
+    "login": {
+      "title": "FoodSnapへようこそ",
+      "subtitle": "お気に入りの食事スポットを発見して共有しましょう",
+      "buttonGoogle": "Googleで続ける",
+      "errorTitle": "ログイン失敗",
+      "errorDescription": "ログイン中にエラーが発生しました。もう一度お試しください。"
+    }
+  },
+  "common": {
+    "loading": "読み込み中...",
+    "error": "エラー",
+    "success": "成功",
+    "logout": "ログアウト"
+  },
+  "post": {
+    "create": {
+      "title": "新しい場所を共有する",
+      "inputTitle": "タイトル",
+      "inputDescription": "説明",
+      "rating": "評価",
+      "uploadImage": "画像をアップロード",
+      "submit": "投稿",
+      "successMessage": "投稿が完了しました！"
+    },
+    "feed": {
+      "title": "ホームフィード",
+      "empty": "まだ投稿がありません。最初の投稿をしましょう！"
+    }
+  }
+}
