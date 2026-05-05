@@ -8,6 +8,7 @@ export interface Post {
   imageUrl: string | null;
   rating: number;
   createdAt: number;
+  likes: string[];
 }
 
 export interface PostPayload {

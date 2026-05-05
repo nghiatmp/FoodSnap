@@ -1,4 +1,4 @@
-import { collection, addDoc, getDocs, query, orderBy, deleteDoc, doc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, orderBy, deleteDoc, doc, onSnapshot, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { db } from './firebase.service';
 import type { PostPayload, Post } from '../types/post';
 import type { UserProfile } from '../types/auth';
@@ -63,6 +63,7 @@ export const createPost = async (payload: PostPayload, user: UserProfile): Promi
     rating: payload.rating,
     imageUrl: imageUrl,
     createdAt: Date.now(),
+    likes: [],
   });
 };
 
@@ -75,6 +76,32 @@ export const fetchPosts = async (): Promise<Post[]> => {
     id: doc.id,
     ...doc.data()
   })) as Post[];
+};
+
+export const subscribeToPosts = (onData: (posts: Post[]) => void, onError: (error: Error) => void) => {
+  const postsRef = collection(db, POST_COLLECTION);
+  const q = query(postsRef, orderBy('createdAt', 'desc'));
+  
+  // onSnapshot lắng nghe sự thay đổi realtime từ Firestore
+  const unsubscribe = onSnapshot(q, (snapshot) => {
+    const posts = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    })) as Post[];
+    onData(posts);
+  }, (error) => {
+    onError(error);
+  });
+
+  return unsubscribe;
+};
+
+export const toggleLikePost = async (postId: string, userId: string, isLiked: boolean): Promise<void> => {
+  const postRef = doc(db, POST_COLLECTION, postId);
+  await updateDoc(postRef, {
+    // Nếu đã like -> Xóa userId khỏi mảng. Nếu chưa like -> Thêm userId vào mảng.
+    likes: isLiked ? arrayRemove(userId) : arrayUnion(userId)
+  });
 };
 
 export const deletePost = async (postId: string): Promise<void> => {

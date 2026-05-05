@@ -5,18 +5,21 @@ import { CreatePostForm } from '../../components/organisms/CreatePostForm';
 import { usePostStore } from '../../store/post/post.slice';
 import { useAuthStore } from '../../store/auth/auth.slice';
 import { customColors } from '../../styles/theme';
-import { Star, Trash2 } from 'lucide-react';
+import { Star, Trash2, Heart } from 'lucide-react';
 import { RATING_OPTIONS } from '../../constants/post';
 import { LoadingSpinner } from '../../components/atoms/LoadingSpinner/LoadingSpinner';
 
 const Home: React.FC = () => {
   const { t } = useTranslation();
-  const { posts, isLoading, error, loadPosts, deletePost } = usePostStore();
+  const { posts, isLoading, error, startListeningPosts, stopListeningPosts, deletePost, toggleLike } = usePostStore();
   const { user } = useAuthStore();
 
   useEffect(() => {
-    loadPosts();
-  }, [loadPosts]);
+    startListeningPosts();
+    return () => {
+      stopListeningPosts();
+    };
+  }, [startListeningPosts, stopListeningPosts]);
 
   const handleDelete = async (postId: string) => {
     if (window.confirm(t('post.feed.deleteConfirm'))) {
@@ -91,7 +94,6 @@ const Home: React.FC = () => {
                         alt="Avatar" 
                         referrerPolicy="no-referrer"
                         onError={(e) => {
-                          // Nếu ảnh lỗi (ví dụ Google đổi link), thay bằng cái vòng tròn xám
                           e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIgdmlld0JveD0iMCAwIDQ4IDQ4Ij48Y2lyY2xlIGN4PSIyNCIgY3k9IjI0IiByPSIyNCIgZmlsbD0iI2UxZTFlMSIvPjwvc3ZnPg==';
                         }}
                         style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover' }} 
@@ -140,14 +142,53 @@ const Home: React.FC = () => {
                   <img src={post.imageUrl} alt={post.title} style={{ width: '100%', maxHeight: '500px', objectFit: 'cover' }} />
                 )}
 
-                <div style={{ padding: '24px' }}>
-                  <div style={{ display: 'flex', gap: '4px', marginBottom: '12px' }}>
-                    {RATING_OPTIONS.map((num) => (
-                      <Star key={num} size={20} fill={num <= post.rating ? customColors.primary : 'none'} color={num <= post.rating ? customColors.primary : '#e1e1e1'} />
-                    ))}
+                <div style={{ padding: '20px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                    <div style={{ display: 'flex', gap: '4px' }}>
+                      {RATING_OPTIONS.map((_, i) => (
+                        <Star key={i} size={18} fill={i < post.rating ? customColors.accentYellow : 'none'} color={i < post.rating ? customColors.accentYellow : customColors.border} />
+                      ))}
+                    </div>
+                    
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ fontSize: '14px', fontWeight: '600', color: customColors.textSecondary }}>
+                        {post.likes?.length || 0}
+                      </span>
+                      <button
+                        onClick={() => {
+                          if (user) {
+                            const isLiked = post.likes?.includes(user.uid);
+                            toggleLike(post.id, user.uid, !!isLiked);
+                          }
+                        }}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          padding: '6px',
+                          borderRadius: '50%',
+                          transition: 'all 0.2s',
+                          color: post.likes?.includes(user?.uid || '') ? customColors.primary : customColors.textSecondary
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = '#ffeaec';
+                          e.currentTarget.style.transform = 'scale(1.1)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = 'transparent';
+                          e.currentTarget.style.transform = 'scale(1)';
+                        }}
+                      >
+                        <Heart size={24} fill={post.likes?.includes(user?.uid || '') ? customColors.primary : 'none'} />
+                      </button>
+                    </div>
                   </div>
-                  <h3 style={{ fontSize: '22px', fontWeight: '700', marginBottom: '12px', color: customColors.text }}>{post.title}</h3>
-                  <p style={{ color: customColors.textSecondary, fontSize: '16px', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{post.description}</p>
+
+                  <h3 style={{ margin: '0 0 8px 0', fontSize: '20px', color: customColors.text }}>{post.title}</h3>
+                  <p style={{ margin: 0, color: customColors.textSecondary, lineHeight: '1.6', fontSize: '15px' }}>{post.description}</p>
                 </div>
               </div>
             ))}
