@@ -7,6 +7,7 @@ import { AUTH_ROUTES } from './constants/auth';
 import { Login } from './pages/Login';
 import { Home } from './pages/Home';
 import { useTranslation } from 'react-i18next';
+import { LoadingSpinner } from './components/atoms/LoadingSpinner/LoadingSpinner';
 
 const App: React.FC = () => {
   const { setUser, setLoading, isAuthenticated, isLoading } = useAuthStore();
@@ -32,7 +33,7 @@ const App: React.FC = () => {
   }, [setUser, setLoading]);
 
   if (isLoading) {
-    return <div>{t('common.loading')}</div>;
+    return <LoadingSpinner fullScreen text={t('common.loading')} />;
   }
 
   return (

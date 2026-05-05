@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import type { Post, PostPayload } from '../../types/post';
-import { createPost, fetchPosts } from '../../services/post.service';
+import { createPost, fetchPosts, deletePost as deletePostService } from '../../services/post.service';
 import type { UserProfile } from '../../types/auth';
 
 interface PostState {
@@ -10,6 +10,7 @@ interface PostState {
   error: string | null;
   loadPosts: () => Promise<void>;
   submitPost: (payload: PostPayload, user: UserProfile) => Promise<boolean>;
+  deletePost: (postId: string) => Promise<boolean>;
 }
 
 export const usePostStore = create<PostState>((set) => ({
@@ -38,6 +39,19 @@ export const usePostStore = create<PostState>((set) => ({
       return true;
     } catch (error: any) {
       set({ error: error.message, isSubmitting: false });
+      return false;
+    }
+  },
+
+  deletePost: async (postId) => {
+    try {
+      await deletePostService(postId);
+      // Re-fetch posts after successful deletion
+      const posts = await fetchPosts();
+      set({ posts });
+      return true;
+    } catch (error: any) {
+      set({ error: error.message });
       return false;
     }
   }

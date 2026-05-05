@@ -30,7 +30,9 @@ export const Header: React.FC = () => {
           <img 
             src={user.photoURL} 
             alt={user.displayName || 'Avatar'} 
-            style={{ width: '36px', height: '36px', borderRadius: '50%' }}
+            referrerPolicy="no-referrer"
+            onError={(e) => { e.currentTarget.style.display = 'none'; }}
+            style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover' }}
           />
         )}
         <span style={{ color: customColors.text, fontWeight: '500' }}>{user?.displayName}</span>
